@@ -1,0 +1,16 @@
+# Ignorar as senhas (MUITO IMPORTANTE)
+.env
+
+# Ignorar ambiente Python local
+venv/
+__pycache__/
+*.pyc
+
+# Ignorar lixo do Frontend (Node.js)
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+
+# Ignorar arquivos de sistema
+.DS_Store
+Thumbs.db
