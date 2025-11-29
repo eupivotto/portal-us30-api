@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
-from capital_client import CapitalClient
+from .capital_client import CapitalClient
+
 
 
 # Carrega as senhas do arquivo .env
