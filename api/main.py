@@ -109,11 +109,19 @@ async def descobrir_epic(termo: str):
         })
         
         if response.status_code == 200:
-            resultados = response.json()
+            dados = response.json()
             
-            # Formatar os resultados de forma legível
+            # Debug: mostrar a estrutura real da resposta
+            if not isinstance(dados, list):
+                return {
+                    "debug": "Resposta não é uma lista",
+                    "tipo": str(type(dados)),
+                    "conteudo": dados
+                }
+            
+            # Formatar os resultados
             epics_encontrados = []
-            for item in resultados[:10]:  # Primeiros 10 resultados
+            for item in dados[:10]:
                 epics_encontrados.append({
                     "epic": item.get('epic'),
                     "nome": item.get('instrumentName'),
@@ -122,7 +130,7 @@ async def descobrir_epic(termo: str):
             
             return {
                 "termo_buscado": termo,
-                "total_encontrados": len(resultados),
+                "total_encontrados": len(dados),
                 "resultados": epics_encontrados
             }
         else:
@@ -130,5 +138,4 @@ async def descobrir_epic(termo: str):
             
     except Exception as e:
         return {"erro": str(e)}
-
 
