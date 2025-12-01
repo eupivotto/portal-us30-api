@@ -49,7 +49,8 @@ async def pegar_dados_elite():
     """
     try:
         client = CapitalClient()
-        client.login()
+        client.autenticar()
+
         
         # Lista das "Donas do Índice" (os EPICs da Capital.com)
         acoes_elite = {
