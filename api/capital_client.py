@@ -94,5 +94,41 @@ class CapitalClient:
 
         except Exception as e:
             return {"erro": f"Erro na requisição: {e}"}
+    
+    def buscar_preco(self, epic):
+        """Busca o preço de qualquer ativo pelo EPIC"""
+        if not self.cst:
+            if not self.autenticar():
+                raise Exception("Falha na autenticação")
+
+        # Ajustar o EPIC para o formato da Capital (adiciona :US se necessário)
+        if ":" not in epic:
+            epic = f"{epic}:US"  # GS vira GS:US
+        
+        url = f"{self.base_url}/markets/{epic}"
+        
+        try:
+            response = requests.get(url, headers={
+                "X-CAP-API-KEY": self.api_key,
+                "CST": self.cst,
+                "X-SECURITY-TOKEN": self.x_security_token
+            })
+            
+            if response.status_code != 200:
+                raise Exception(f"Erro HTTP {response.status_code}: {response.text}")
+            
+            dados = response.json()
+            
+            # Extrair o preço (BID é o preço de venda/atual)
+            preco_bid = dados.get('snapshot', {}).get('bid')
+            
+            if preco_bid is None:
+                raise Exception(f"Preço não encontrado para {epic}")
+            
+            return preco_bid
+            
+        except Exception as e:
+            raise Exception(f"Erro ao buscar {epic}: {str(e)}")
+
 
 
