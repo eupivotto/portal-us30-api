@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
+import requests
 from .capital_client import CapitalClient
 
 
@@ -88,4 +89,46 @@ async def pegar_dados_elite():
             "status": "ERRO ❌",
             "mensagem": str(e)
         }
+@app.get("/descobrir-epic/{termo}")
+async def descobrir_epic(termo: str):
+    """
+    Endpoint para descobrir o EPIC correto de uma ação
+    Exemplo: /descobrir-epic/Microsoft
+    """
+    try:
+        client = CapitalClient()
+        client.autenticar()
+        
+        url = f"{client.base_url}/markets"
+        params = {"searchTerm": termo}
+        
+        response = requests.get(url, params=params, headers={
+            "X-CAP-API-KEY": client.api_key,
+            "CST": client.cst,
+            "X-SECURITY-TOKEN": client.x_security_token
+        })
+        
+        if response.status_code == 200:
+            resultados = response.json()
+            
+            # Formatar os resultados de forma legível
+            epics_encontrados = []
+            for item in resultados[:10]:  # Primeiros 10 resultados
+                epics_encontrados.append({
+                    "epic": item.get('epic'),
+                    "nome": item.get('instrumentName'),
+                    "tipo": item.get('instrumentType')
+                })
+            
+            return {
+                "termo_buscado": termo,
+                "total_encontrados": len(resultados),
+                "resultados": epics_encontrados
+            }
+        else:
+            return {"erro": f"HTTP {response.status_code}", "detalhes": response.text}
+            
+    except Exception as e:
+        return {"erro": str(e)}
+
 
