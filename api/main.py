@@ -40,3 +40,51 @@ def teste_btc():
     cliente = CapitalClient()
     resultado = cliente.testar_conexao_btc()
     return resultado
+
+@app.get("/elite")
+async def pegar_dados_elite():
+    """
+    Retorna os preços das ações que comandam o US30
+    (Goldman Sachs, UnitedHealth, Caterpillar, Microsoft, Home Depot, McDonald's)
+    """
+    try:
+        client = CapitalClient()
+        client.login()
+        
+        # Lista das "Donas do Índice" (os EPICs da Capital.com)
+        acoes_elite = {
+            "Goldman_Sachs": "GS",      # Epic: GS
+            "UnitedHealth": "UNH",      # Epic: UNH
+            "Caterpillar": "CAT",       # Epic: CAT
+            "Microsoft": "MSFT",        # Epic: MSFT
+            "Home_Depot": "HD",         # Epic: HD
+            "McDonalds": "MCD"          # Epic: MCD
+        }
+        
+        dados = {}
+        
+        for nome, epic in acoes_elite.items():
+            try:
+                preco = client.buscar_preco(epic)
+                dados[nome] = {
+                    "preco": preco,
+                    "epic": epic
+                }
+            except Exception as e:
+                dados[nome] = {
+                    "preco": None,
+                    "erro": str(e)
+                }
+        
+        return {
+            "status": "CONECTADO ✅",
+            "timestamp": "Tempo Real",
+            "dados": dados
+        }
+        
+    except Exception as e:
+        return {
+            "status": "ERRO ❌",
+            "mensagem": str(e)
+        }
+
