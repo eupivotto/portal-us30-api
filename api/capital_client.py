@@ -99,36 +99,39 @@ class CapitalClient:
         """Busca o preço de qualquer ativo pelo EPIC"""
         if not self.cst:
             if not self.autenticar():
-                raise Exception("Falha na autenticação")
-
-        # Ajustar o EPIC para o formato da Capital (adiciona :US se necessário)
-        if ":" not in epic:
-            epic = f"{epic}:US"  # GS vira GS:US
+                return None
         
-        url = f"{self.base_url}/markets/{epic}"
+        # Usar o endpoint de busca que já sabemos que funciona
+        url = f"{self.base_url}/markets"
+        params = {"searchTerm": epic, "epics": epic}
         
         try:
-            response = requests.get(url, headers={
+            response = requests.get(url, params=params, headers={
                 "X-CAP-API-KEY": self.api_key,
                 "CST": self.cst,
                 "X-SECURITY-TOKEN": self.x_security_token
             })
             
-            if response.status_code != 200:
-                raise Exception(f"Erro HTTP {response.status_code}: {response.text}")
-            
-            dados = response.json()
-            
-            # Extrair o preço (BID é o preço de venda/atual)
-            preco_bid = dados.get('snapshot', {}).get('bid')
-            
-            if preco_bid is None:
-                raise Exception(f"Preço não encontrado para {epic}")
-            
-            return preco_bid
-            
+            if response.status_code == 200:
+                dados = response.json()
+                
+                # A resposta vem em formato dict com chave "markets"
+                markets = dados.get('markets', [])
+                
+                if markets and len(markets) > 0:
+                    item = markets[0]
+                    bid = item.get('bid')
+                    offer = item.get('offer')
+                    
+                    # Retornar o preço médio
+                    if bid and offer:
+                        return round((bid + offer) / 2, 2)
+                    elif bid:
+                        return round(bid, 2)
+                
+                return None
+            else:
+                return None
+                
         except Exception as e:
-            raise Exception(f"Erro ao buscar {epic}: {str(e)}")
-    
-    
-
+            return None
